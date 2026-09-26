@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>76. Minimum Window Substring — Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#09090b;
+  --card:#101013;
+  --card2:#17171b;
+  --border:#232327;
+  --border2:#2e2e34;
+  --text:#fafafa;
+  --muted:#a1a1aa;
+  --faint:#63636b;
+  --red:#f04438;
+  --red-soft:rgba(240,68,56,0.10);
+  --red-border:rgba(240,68,56,0.38);
+  --r:12px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#2a2a30;border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+/* header */
+header{height:56px;flex-shrink:0;display:flex;align-items:center;gap:14px;padding:0 18px;border-bottom:1px solid var(--border);background:#0c0c0f}
+.num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;background:var(--red);color:#fff;padding:3px 8px;border-radius:6px}
+.title h1{font-size:14px;font-weight:600;letter-spacing:-0.01em}
+.title p{font-size:11.5px;color:var(--muted)}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.stepcount{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.stepcount b{color:var(--text)}
+.btn{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:500;border-radius:8px;padding:8px 14px;font-size:13px;background:var(--card2);border:1px solid var(--border);color:var(--text);transition:border-color .12s,transform .08s}
+.btn:hover{border-color:var(--border2)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--red);border-color:var(--red);color:#fff;min-width:40px}
+.btn-primary:hover{background:#d92d20}
+.btn-icon{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:16px}
+/* layout */
+.shell{flex:1;min-height:0;display:grid;grid-template-columns:560px minmax(0,1fr) 330px;padding:14px;gap:14px}
+@media(max-width:1280px){.shell{grid-template-columns:520px minmax(0,1fr) 300px}}
+@media(max-width:1020px){html,body{overflow:auto;height:auto}.shell{grid-template-columns:1fr}header{position:sticky;top:0;z-index:10}}
+.col{display:flex;flex-direction:column;min-height:0;overflow:hidden;gap:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.card-h{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.card-h h3{font-size:12px;font-weight:600;letter-spacing:.02em}
+.card-h .right{margin-left:auto;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+/* code */
+.execbar{padding:10px 14px;background:var(--red-soft);border-bottom:1px solid var(--red-border);display:flex;align-items:center;gap:9px;flex-shrink:0}
+.execbar .dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
+#execLabel{font-size:13px;font-weight:600}
+#lineHint{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#fda29b;background:rgba(240,68,56,.14);border:1px solid var(--red-border);padding:3px 9px;border-radius:99px;white-space:nowrap}
+.code{flex:1;overflow:auto;padding:12px 0;font-family:'JetBrains Mono',monospace;font-size:12.8px;line-height:1.72;tab-size:4}
+.cl{display:flex;gap:12px;padding:1px 16px 1px 0;border-left:2px solid transparent;white-space:pre;color:#c9c9d1;min-width:max-content}
+.cl span:last-child{flex:1;min-width:0;padding-right:16px}
+.cl .ln{color:#3f3f46;min-width:36px;text-align:right;flex-shrink:0;user-select:none;font-size:11px;padding-top:3px}
+.cl.active{background:var(--red-soft);border-left-color:var(--red);color:#fff}
+.cl.active .ln{color:var(--red);font-weight:600}
+.k{color:#f97066} .cm{color:#52525b;font-style:italic} .st{color:#fdb022} .fn{color:#fff}
+.why{padding:12px 14px;border-top:1px solid var(--border);background:#0d0d10;flex-shrink:0}
+.why p{font-size:13px;line-height:1.6;color:#e4e4e7}
+.why small{display:block;margin-top:5px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+/* inputs */
+.inputs{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.inrow{display:flex;gap:8px}
+.fld{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld label{font-size:11px;color:var(--muted);font-weight:500}
+.inp{width:100%;padding:9px 11px;border-radius:8px;background:#000;border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none}
+.inp:focus{border-color:var(--red-border)}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.preset{padding:5px 11px;border-radius:99px;font-size:11.5px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:inherit}
+.preset.active{color:#fff;border-color:var(--red);background:var(--red-soft)}
+.preset:hover{color:#fff;border-color:var(--border2)}
+/* viz */
+.vizbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
+.vizbar .stat{font-size:12px;color:var(--muted)}
+.vizbar .stat b{color:var(--text);font-family:'JetBrains Mono',monospace;font-weight:600}
+.scrub{flex:1;display:flex;align-items:center;gap:8px;min-width:120px}
+.scrub input{flex:1;accent-color:var(--red)}
+.view{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.lbl{font-size:10.5px;color:var(--faint);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.srow{display:flex;gap:6px;flex-wrap:wrap}
+.ch{min-width:38px;flex:1 1 38px;max-width:54px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:9px 4px 7px;text-align:center;position:relative;transition:border-color .12s,background .12s}
+.ch b{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500;display:block}
+.ch small{font-size:10px;color:var(--faint);font-family:'JetBrains Mono',monospace}
+.ch.inwin{border-color:var(--red-border);background:var(--red-soft)}
+.ch.inwin b{color:#fff}
+.ch.isBest::after{content:"";position:absolute;left:8px;right:8px;bottom:4px;height:2px;border-radius:2px;background:var(--red)}
+.mk{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;letter-spacing:.04em;line-height:1.3}
+.mkL{background:#fff;color:#000}
+.mkR{background:var(--red);color:#fff}
+.eq{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;border-radius:var(--r);background:var(--card2);border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:13px}
+.eq .p{padding:5px 10px;border-radius:7px;background:#000;border:1px solid var(--border);color:var(--muted)}
+.eq .p.hot{border-color:var(--red);color:#fff}
+.badge{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;padding:5px 12px;border-radius:99px;border:1px solid var(--border2);color:var(--muted);font-family:'Inter',sans-serif}
+.badge.valid{background:var(--red);border-color:var(--red);color:#fff}
+.phases{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.ph{padding:10px;border-radius:9px;border:1px solid var(--border);background:var(--card2);text-align:center}
+.ph b{font-size:12px;display:block}
+.ph span{font-size:11px;color:var(--muted)}
+.ph.on{border-color:var(--red);background:var(--red-soft)}
+.ph.on b{color:#fff}
+.trirow{display:flex;flex-wrap:wrap;gap:6px}
+.best-pill{font-family:'JetBrains Mono',monospace;font-size:13px;padding:7px 13px;border-radius:99px;background:var(--red-soft);border:1px solid var(--red-border);color:#fff}
+.empty{font-size:12.5px;color:var(--faint);border:1px dashed var(--border2);border-radius:9px;padding:10px;text-align:center;width:100%}
+.hint{text-align:center;font-size:11.5px;color:var(--faint)}
+.hint kbd{font-family:'JetBrains Mono',monospace;background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:10.5px;color:var(--muted)}
+/* vars inspector */
+.vars{flex:1;min-height:0;display:flex;flex-direction:column}
+.vars-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:14px}
+.vsec h4{font-size:10.5px;color:var(--faint);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.vitem{background:#000;border:1px solid var(--border);border-radius:9px;padding:8px 10px;transition:border-color .15s}
+.vitem.changed{border-color:var(--red)}
+.vitem .k{font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;display:block;margin-bottom:2px}
+.vitem .v{font-size:14px;font-family:'JetBrains Mono',monospace;font-weight:600}
+.vitem .v small{font-size:11px;color:var(--muted);font-weight:400}
+.vitem.changed .v{color:#fff}
+.maprow{display:flex;align-items:center;gap:8px;background:#000;border:1px solid var(--border);border-radius:9px;padding:7px 10px;margin-bottom:6px;transition:border-color .15s}
+.maprow.changed{border-color:var(--red)}
+.maprow .mc{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;width:22px;height:22px;display:grid;place-items:center;background:var(--card2);border:1px solid var(--border2);border-radius:6px;flex-shrink:0}
+.maprow.ok .mc{background:var(--red);border-color:var(--red);color:#fff}
+.maprow .bar{flex:1;height:5px;border-radius:99px;background:#222227;overflow:hidden}
+.maprow .bar i{display:block;height:100%;background:#3f3f46;border-radius:99px;transition:width .2s}
+.maprow.ok .bar i{background:var(--red)}
+.maprow .ct{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);white-space:nowrap}
+.maprow.ok .ct{color:#fff}
+.maprow.extra{opacity:.55}
+.strval{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:#000;border:1px solid var(--border);border-radius:9px;padding:8px 10px;word-break:break-all;line-height:1.5}
+.strval b{color:var(--red)}
+</style>
+</head>
+<body>
+<header>
+  <span class="num">76</span>
+  <div class="title"><h1>Minimum Window Substring</h1><p>sliding window · O(m + n)</p></div>
+  <div class="hdr-right">
+    <span class="stepcount"><b id="hStep">1/1</b></span>
+    <button class="btn btn-icon" id="bPrev" title="Prev (←)">‹</button>
+    <button class="btn btn-primary btn-icon" id="bPlay" title="Play (Space)">▶</button>
+    <button class="btn btn-icon" id="bNext" title="Next (→)">›</button>
+  </div>
+</header>
+
+<div class="shell">
+  <!-- CODE -->
+  <div class="col">
+    <div class="card" style="flex:1">
+      <div class="card-h"><h3>main.go — minWindow</h3><span class="right">your code</span></div>
+      <div class="execbar"><span class="dot"></span><span id="execLabel">Ready</span><span id="lineHint">—</span></div>
+      <div class="code" id="codeView"></div>
+      <div class="why"><p id="whyText">Press Apply, then step.</p><small id="whySub"></small></div>
+    </div>
+  </div>
+
+  <!-- VIZ -->
+  <div class="col">
+    <div class="card" style="flex:0 0 auto">
+      <div class="inputs">
+        <div class="inrow">
+          <div class="fld"><label>s — search in</label><input id="inS" class="inp" value="ADOBECODEBANC" spellcheck="false"></div>
+          <div class="fld" style="max-width:120px"><label>t — need</label><input id="inT" class="inp" value="ABC" spellcheck="false"></div>
+          <div class="fld" style="max-width:170px;justify-content:flex-end"><label>&nbsp;</label><div style="display:flex;gap:6px"><button class="btn btn-primary" id="bApply" style="flex:1">Apply</button><button class="btn" id="bRand">↻</button></div></div>
+        </div>
+        <div class="presets">
+          <button class="preset active" data-s="ADOBECODEBANC" data-t="ABC">ADOBECODEBANC / ABC</button>
+          <button class="preset" data-s="a" data-t="a">a / a</button>
+          <button class="preset" data-s="a" data-t="aa">a / aa → ∅</button>
+          <button class="preset" data-s="ab" data-t="b">ab / b</button>
+          <button class="preset" data-s="AAABBBCCC" data-t="ABC">AAABBBCCC / ABC</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="flex:1">
+      <div class="vizbar">
+        <span class="stat">window <b id="stWin">—</b></span>
+        <span class="stat">best <b id="stBest">—</b></span>
+        <div class="scrub"><input id="scrub" type="range" min="0" max="0" value="0"><span class="stat" id="scrubInfo" style="white-space:nowrap">0/0</span></div>
+        <span class="stat"><input id="spd" type="range" min="0.3" max="2.5" step="0.1" value="1" style="width:64px;accent-color:#f04438;vertical-align:middle"> <span id="spdV">1×</span></span>
+      </div>
+      <div class="view">
+        <div><div class="lbl">s — red = current window · underline = best</div><div class="srow" id="sRow"></div></div>
+        <div class="eq"><span class="p" id="eqH">have=0</span><span style="color:var(--faint)">/</span><span class="p" id="eqN">need=0</span><span class="badge" id="validBadge">NOT VALID</span></div>
+        <div class="phases">
+          <div class="ph" id="phE"><b>expand →</b><span>R moves, add s[R]</span></div>
+          <div class="ph" id="phV"><b>valid?</b><span>have == needCount</span></div>
+          <div class="ph" id="phS"><b>← shrink</b><span>record best, drop s[L]</span></div>
+        </div>
+        <div><div class="lbl">Best window</div><div class="trirow" id="bestRow"></div></div>
+        <div class="hint"><kbd>Space</kbd> play &nbsp; <kbd>←</kbd><kbd>→</kbd> step &nbsp; drag bar to scrub</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARS -->
+  <div class="col">
+    <div class="card vars">
+      <div class="card-h"><h3>Variables</h3><span class="right">live · red = changed</span></div>
+      <div class="vars-body">
+        <div class="vsec"><h4>Pointers &amp; state</h4><div class="vgrid" id="vScalars"></div></div>
+        <div class="vsec"><h4>need — required counts (from t)</h4><div id="vNeed"></div></div>
+        <div class="vsec"><h4>window — current counts [L..R]</h4><div id="vWin"></div></div>
+        <div class="vsec"><h4>Strings</h4>
+          <div style="font-size:10.5px;color:var(--faint);font-family:'JetBrains Mono',monospace;margin:8px 0 4px">s</div><div class="strval" id="vS"></div>
+          <div style="font-size:10.5px;color:var(--faint);font-family:'JetBrains Mono',monospace;margin:8px 0 4px">t</div><div class="strval" id="vT"></div>
+          <div style="font-size:10.5px;color:var(--faint);font-family:'JetBrains Mono',monospace;margin:8px 0 4px">current window</div><div class="strval" id="vCur"></div>
+          <div style="font-size:10.5px;color:var(--faint);font-family:'JetBrains Mono',monospace;margin:8px 0 4px">best answer</div><div class="strval" id="vBest"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CODE=[
+{ln:1,line:1,t:`<span class="k">package</span> main`},
+{ln:2,line:2,t:``},
+{ln:3,line:3,t:`<span class="k">func</span> <span class="fn">minWindow</span>(s, t <span class="k">string</span>) <span class="k">string</span> {`},
+{ln:4,line:4,t:`\t<span class="cm">// Okay, if t is bigger than s, I already know this shit can't possibly fit.</span>`},
+{ln:5,line:5,t:`\t<span class="k">if</span> <span class="fn">len</span>(t) &gt; <span class="fn">len</span>(s) {`},
+{ln:6,line:6,t:`\t\t<span class="k">return</span> <span class="st">""</span>`},
+{ln:7,line:7,t:`\t}`},
+{ln:8,line:8,t:``},
+{ln:9,line:9,t:`\t<span class="cm">// First thing, let me figure out what t actually needs.</span>`},
+{ln:10,line:10,t:`\t<span class="cm">// If t is "AABC", I need 2 A's, 1 B and 1 C.</span>`},
+{ln:11,line:11,t:`\tneed := <span class="fn">make</span>(<span class="k">map</span>[<span class="k">byte</span>]<span class="k">int</span>)`},
+{ln:12,line:12,t:``},
+{ln:13,line:13,t:`\t<span class="cm">// So I'll just count every character in t.</span>`},
+{ln:14,line:14,t:`\t<span class="k">for</span> i := <span class="k">range</span> <span class="fn">len</span>(t) {`},
+{ln:15,line:15,t:`\t\tneed[t[i]]++`},
+{ln:16,line:16,t:`\t}`},
+{ln:17,line:17,t:``},
+{ln:18,line:18,t:`\t<span class="cm">// Now I need another map for the window,</span>`},
+{ln:19,line:19,t:`\t<span class="cm">// because I need to compare what I actually have against what I need.</span>`},
+{ln:20,line:20,t:`\twindow := <span class="fn">make</span>(<span class="k">map</span>[<span class="k">byte</span>]<span class="k">int</span>)`},
+{ln:21,line:21,t:``},
+{ln:22,line:22,t:`\t<span class="cm">// I don't really care about every individual character I've seen.</span>`},
+{ln:23,line:23,t:`\t<span class="cm">// I care about how many of the required characters are fully satisfied.</span>`},
+{ln:24,line:24,t:`\thave := <span class="fn">0</span>`},
+{ln:25,line:25,t:``},
+{ln:26,line:26,t:`\t<span class="cm">// So if t is "AABC", there are 3 requirements: A, B and C.</span>`},
+{ln:27,line:27,t:`\t<span class="cm">// I need all 3 of those to be satisfied before the window is valid.</span>`},
+{ln:28,line:28,t:`\tneedCount := <span class="fn">len</span>(need)`},
+{ln:29,line:29,t:``},
+{ln:30,line:30,t:`\t<span class="cm">// Alright, left is gonna mark where my current window starts.</span>`},
+{ln:31,line:31,t:`\tleft := <span class="fn">0</span>`},
+{ln:32,line:32,t:``},
+{ln:33,line:33,t:`\t<span class="cm">// I need to remember the smallest valid window I've found,</span>`},
+{ln:34,line:34,t:`\t<span class="cm">// so I'll keep its starting position and length.</span>`},
+{ln:35,line:35,t:`\tbestStart := <span class="fn">0</span>`},
+{ln:36,line:36,t:`\tbestLen := <span class="fn">len</span>(s) + <span class="fn">1</span>`},
+{ln:37,line:37,t:``},
+{ln:38,line:38,t:`\t<span class="cm">// Now right just keeps expanding the window and we'll see when it becomes valid.</span>`},
+{ln:39,line:39,t:`\t<span class="k">for</span> right := <span class="k">range</span> <span class="fn">len</span>(s) {`},
+{ln:40,line:40,t:`\t\t<span class="cm">// This is the new character I'm throwing into my window.</span>`},
+{ln:41,line:41,t:`\t\tchar := s[right]`},
+{ln:42,line:42,t:``},
+{ln:43,line:43,t:`\t\t<span class="cm">// Cool, add it to whatever I already have in the window.</span>`},
+{ln:44,line:44,t:`\t\twindow[char]++`},
+{ln:45,line:45,t:``},
+{ln:46,line:46,t:`\t\t<span class="cm">// Okay, is this character even something t asked for?</span>`},
+{ln:47,line:47,t:`\t\t<span class="cm">// And if it is, did I just reach the exact amount I need?</span>`},
+{ln:48,line:48,t:`\t\t<span class="k">if</span> required, ok := need[char]; ok &amp;&amp; window[char] == required {`},
+{ln:49,line:49,t:`\t\t\t<span class="cm">// Yep, that requirement is now satisfied.</span>`},
+{ln:50,line:50,t:`\t\t\thave++`},
+{ln:51,line:51,t:`\t\t}`},
+{ln:52,line:52,t:``},
+{ln:53,line:53,t:`\t\t<span class="cm">// Alright, if all the requirements are satisfied,</span>`},
+{ln:54,line:54,t:`\t\t<span class="cm">// I have a valid window, so now I wanna make it smaller.</span>`},
+{ln:55,line:55,t:`\t\t<span class="k">for</span> have == needCount {`},
+{ln:56,line:56,t:`\t\t\t<span class="cm">// Before I start removing shit, save this window if it's the smallest one so far.</span>`},
+{ln:57,line:57,t:`\t\t\tcurrentLen := right - left + <span class="fn">1</span>`},
+{ln:58,line:58,t:``},
+{ln:59,line:59,t:`\t\t\t<span class="k">if</span> currentLen &lt; bestLen {`},
+{ln:60,line:60,t:`\t\t\t\tbestLen = currentLen`},
+{ln:61,line:61,t:`\t\t\t\tbestStart = left`},
+{ln:62,line:62,t:`\t\t\t}`},
+{ln:63,line:63,t:``},
+{ln:64,line:64,t:`\t\t\t<span class="cm">// Okay, let's kick the character at the left edge out of the window</span>`},
+{ln:65,line:65,t:`\t\t\t<span class="cm">// and see if I can still satisfy everything without it.</span>`},
+{ln:66,line:66,t:`\t\t\tleftChar := s[left]`},
+{ln:67,line:67,t:`\t\t\twindow[leftChar]--`},
+{ln:68,line:68,t:``},
+{ln:69,line:69,t:`\t\t\t<span class="cm">// If this character was required and removing it means</span>`},
+{ln:70,line:70,t:`\t\t\t<span class="cm">// I no longer have enough copies, then the window is fucked.</span>`},
+{ln:71,line:71,t:`\t\t\t<span class="k">if</span> required, ok := need[leftChar]; ok &amp;&amp; window[leftChar] &lt; required {`},
+{ln:72,line:72,t:`\t\t\t\thave--`},
+{ln:73,line:73,t:`\t\t\t}`},
+{ln:74,line:74,t:``},
+{ln:75,line:75,t:`\t\t\t<span class="cm">// Either way, I'm done with this leftmost character,</span>`},
+{ln:76,line:76,t:`\t\t\t<span class="cm">// so move the window forward.</span>`},
+{ln:77,line:77,t:`\t\t\tleft++`},
+{ln:78,line:78,t:`\t\t}`},
+{ln:79,line:79,t:`\t}`},
+{ln:80,line:80,t:``},
+{ln:81,line:81,t:`\t<span class="cm">// If bestLen never changed, I never managed to make a valid window.</span>`},
+{ln:82,line:82,t:`\t<span class="k">if</span> bestLen == <span class="fn">len</span>(s)+<span class="fn">1</span> {`},
+{ln:83,line:83,t:`\t\t<span class="k">return</span> <span class="st">""</span>`},
+{ln:84,line:84,t:`\t}`},
+{ln:85,line:85,t:``},
+{ln:86,line:86,t:`\t<span class="cm">// We remember where the best window started and how long it was,</span>`},
+{ln:87,line:87,t:`\t<span class="cm">// so just slice it out and return it.</span>`},
+{ln:88,line:88,t:`\t<span class="k">return</span> s[bestStart : bestStart+bestLen]`},
+{ln:89,line:89,t:`}`},
+];
+const $=s=>document.querySelector(s);
+const cv=$('#codeView');
+cv.innerHTML=CODE.map(c=>`<div class="cl" data-line="${c.line}"><span class="ln">${c.ln}</span><span>${c.t||'&nbsp;'}</span></div>`).join('');
+let actEl=null;
+function hl(line,label){
+  if(actEl)actEl.classList.remove('active');actEl=null;
+  if(!line){$('#lineHint').textContent='—';$('#execLabel').textContent='Ready';return;}
+  const el=cv.querySelector(`[data-line="${line}"]`);
+  if(el){el.classList.add('active');actEl=el;el.scrollIntoView({block:'center',behavior:'smooth'});}
+  $('#lineHint').textContent='line '+line;
+  $('#execLabel').textContent=label;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function gen(s,t){
+  const steps=[];
+  const P=o=>steps.push(o);
+  const snap=w=>({...w});
+  // state mirrors Go vars; snapshots are POST-execution so viz always matches highlighted line
+  let need={}, window={}, have=0, needCount=0, left=-1, right=-1, char='—', leftChar='—', curLen='—', bestStart=0, bestLen=s.length+1;
+  const st=()=>({left,right,char,leftChar,curLen,window:snap(window),have,bestStart,bestLen,need:snap(need)});
+  // line 5: check len(t) > len(s) — no state change yet
+  P({line:5,...st(),phase:'check',label:'check len(t)='+t.length+' > len(s)='+s.length+'?',why:'First check: can t even fit inside s?',sub:'line 5 · condition'});
+  if(t.length>s.length){
+    P({line:6,...st(),phase:'done',label:'return ""',why:'t is longer than s — impossible. Return empty.',sub:'line 6 · early return',final:""});
+    return {steps,need:{},needCount:0,final:""};
+  }
+  // line 11: need map created (empty)
+  need={}; P({line:11,...st(),phase:'init',label:'need = empty map',why:'Create empty need map. Will count t next.',sub:'line 11 · make map'});
+  // lines 14-15: build need one char at a time so map growth matches code
+  for(let i=0;i<t.length;i++){
+    P({line:14,...st(),phase:'init',label:'loop i='+i+' (t['+i+']="'+t[i]+'")',why:'Counting t: iteration i='+i+'.',sub:'line 14 · for i'});
+    need[t[i]]=(need[t[i]]||0)+1;
+    P({line:15,...st(),need:snap(need),phase:'init',label:'need["'+t[i]+'"] = '+need[t[i]],why:'Counted "'+t[i]+'": need is now '+JSON.stringify(need)+'.',sub:'line 15 · need[t[i]]++'});
+  }
+  // fix need snapshot into subsequent steps
+  const needFinal=snap(need);
+  needCount=Object.keys(need).length;
+  const st2=()=>({left,right,char,leftChar,curLen,window:snap(window),have,bestStart,bestLen,need:needFinal});
+  P({line:20,...st2(),phase:'init',label:'window = empty map',why:'Create empty window map for current [L..R] counts.',sub:'line 20 · make map'});
+  have=0; P({line:24,...st2(),phase:'init',label:'have = 0',why:'have = satisfied kinds. Starts at 0.',sub:'line 24'});
+  P({line:28,...st2(),phase:'init',label:'needCount = '+needCount,why:'Distinct kinds needed: '+needCount+' ('+Object.keys(needFinal).join(', ')+').',sub:'line 28 · len(need)'});
+  left=0; P({line:31,...st2(),phase:'init',label:'left = 0',why:'L starts at 0.',sub:'line 31'});
+  bestStart=0; P({line:35,...st2(),phase:'init',label:'bestStart = 0',why:'Best answer tracking starts.',sub:'line 35'});
+  bestLen=s.length+1; P({line:36,...st2(),phase:'init',label:'bestLen = '+bestLen+' (∞)',why:'bestLen = ∞ so any valid window beats it.',sub:'line 36'});
+  if(!s.length){P({line:82,...st2(),phase:'done',label:'bestLen==len(s)+1 → return ""',why:'s empty — no window.',sub:'line 82',final:""});return{steps,need:needFinal,needCount,final:""};}
+  for(let r=0;r<s.length;r++){
+    right=r;
+    P({line:39,...st2(),phase:'expand',label:'right = '+r+' (s[R]="'+s[r]+'")',why:'Outer loop: R advances to '+r+'. Window not yet updated.',sub:'line 39 · for right'});
+    char=s[right];
+    P({line:41,...st2(),phase:'expand',label:'char = s['+right+'] = "'+char+'"',why:'Read new char "'+char+'" — not yet added to window.',sub:'line 41'});
+    window[char]=(window[char]||0)+1;
+    P({line:44,...st2(),phase:'expand',label:'window["'+char+'"] = '+window[char],why:'Added "'+char+'". Window ['+left+'..'+right+'] = "'+s.slice(left,right+1)+'".',sub:'line 44 · window[char]++'});
+    const req=need[char]; const ok=req!==undefined;
+    const cond=ok&&window[char]===req;
+    P({line:48,...st2(),phase:'check',label:'window["'+char+'"]='+window[char]+(ok?' == need '+req+'? '+(cond?'yes':'no'):' (not needed)'),why:ok?('Is "'+char+'" now exactly satisfied? '+window[char]+' vs needed '+req+'.'):'"'+char+'" is not in t — ignore.',sub:'line 48 · if condition'});
+    if(cond){have++;P({line:50,...st2(),phase:'satisfy',label:'have = '+have,why:'"'+char+'" quota met. have='+have+'/'+needCount+'.',sub:'line 50 · have++'});}
+    P({line:55,...st2(),phase:'check',label:'have('+have+') == needCount('+needCount+')? '+(have===needCount?'yes':'no'),why:have===needCount?'Valid window — enter shrink loop.':'Not valid — keep expanding R.',sub:'line 55 · for condition'});
+    while(have===needCount){
+      curLen=right-left+1;
+      P({line:57,...st2(),phase:'valid',label:'currentLen = '+curLen,why:'Current window ['+left+'..'+right+'] length '+curLen+'.',sub:'line 57'});
+      P({line:59,...st2(),phase:'check',label:curLen+' < '+bestLen+'? '+(curLen<bestLen?'yes':'no'),why:curLen<bestLen?'Shorter than best — will save.':'Not shorter — keep best.',sub:'line 59 · if'});
+      if(curLen<bestLen){bestLen=curLen;P({line:60,...st2(),phase:'record',label:'bestLen = '+bestLen,why:'New shortest length '+bestLen+'.',sub:'line 60'});bestStart=left;P({line:61,...st2(),phase:'record',label:'bestStart = '+bestStart,why:'Best is now "'+s.slice(bestStart,bestStart+bestLen)+'" at '+bestStart+'.',sub:'line 61'});}
+      leftChar=s[left];
+      P({line:66,...st2(),phase:'shrink',label:'leftChar = s['+left+'] = "'+leftChar+'"',why:'Look at leftmost "'+leftChar+'" — about to evict it.',sub:'line 66'});
+      window[leftChar]--;
+      P({line:67,...st2(),phase:'shrink',label:'window["'+leftChar+'"] = '+window[leftChar],why:'Evicted "'+leftChar+'". Window now ['+(left+1)+'..'+right+'] (L still '+left+' until left++).',sub:'line 67 · window[leftChar]--'});
+      const rq=need[leftChar]; const cok=rq!==undefined; const ccond=cok&&window[leftChar]<rq;
+      P({line:71,...st2(),phase:'check',label:cok?('window["'+leftChar+'"]='+window[leftChar]+' < '+rq+'? '+(ccond?'yes → break':'no')):'"'+leftChar+'" not needed',why:cok?('Did removing "'+leftChar+'" break its quota?'):('"'+leftChar+'" was extra — window stays valid.'),sub:'line 71 · if'});
+      if(ccond){have--;P({line:72,...st2(),phase:'break',label:'have = '+have,why:'Quota broken. have='+have+' — window invalid, exit shrink loop.',sub:'line 72 · have--'});}
+      left++;
+      P({line:77,...st2(),phase:'shrink',label:'left = '+left,why:'L advances to '+left+'.',sub:'line 77 · left++'});
+      P({line:55,...st2(),phase:'check',label:'have('+have+') == needCount('+needCount+')? '+(have===needCount?'yes':'no'),why:have===needCount?'Still valid — shrink again.':'Loop ends — back to expanding R.',sub:'line 55 · re-check'});
+    }
+  }
+  P({line:82,...st2(),phase:'check',label:'bestLen('+bestLen+') == len(s)+1('+ (s.length+1) +')? '+(bestLen===s.length+1?'yes':'no'),why:bestLen===s.length+1?'Never found valid window.':'Found a best window.',sub:'line 82 · if'});
+  if(bestLen===s.length+1){P({line:83,...st2(),phase:'done',label:'return ""',why:'No valid window — return empty.',sub:'line 83',final:""});return{steps,need:needFinal,needCount,final:""};}
+  const final=s.slice(bestStart,bestStart+bestLen);
+  P({line:88,...st2(),phase:'done',label:'return "'+final+'"',why:'Answer "'+final+'" at ['+bestStart+'..'+(bestStart+bestLen-1)+'].',sub:'line 88 · return slice',final});
+  return {steps,need:needFinal,needCount,final};
+}
+
+let S={s:"ADOBECODEBANC",t:"ABC",trace:null,idx:0,playing:false,timer:null,speed:1,prev:null};
+
+function renderS(s,left,right,bestStart,bestLen){
+  const row=$('#sRow');row.innerHTML='';
+  [...s].forEach((ch,i)=>{
+    const d=document.createElement('div');
+    let cls='ch';
+    if(left!==-1&&right!==-1&&i>=left&&i<=right)cls+=' inwin';
+    if(bestLen<=s.length&&i>=bestStart&&i<bestStart+bestLen)cls+=' isBest';
+    d.className=cls;
+    let mk='';
+    if(left!==-1&&i===left&&i===right)mk='<div class="mk mkL">L·R</div>';
+    else if(left!==-1&&i===left)mk='<div class="mk mkL">L</div>';
+    else if(right!==-1&&i===right)mk='<div class="mk mkR">R</div>';
+    d.innerHTML=`${mk}<b>${esc(ch)}</b><small>${i}</small>`;
+    row.appendChild(d);
+  });
+}
+/* vars inspector with change highlight */
+function changed(a,b){return JSON.stringify(a)!==JSON.stringify(b);}
+function renderVars(st,prev){
+  const nc=S.trace.needCount;
+  const valid=st.have===nc&&nc>0;
+  const curLen=(st.left!==-1&&st.right!==-1&&st.right>=st.left)?st.right-st.left+1:'—';
+  const items=[
+    {k:'left',v:st.left===-1?'—':st.left, chg:prev&&prev.left!==st.left},
+    {k:'right',v:st.right===-1?'—':st.right, chg:prev&&prev.right!==st.right},
+    {k:'have',v:st.have+'<small>/'+nc+'</small>', chg:prev&&prev.have!==st.have},
+    {k:'needCount',v:nc, chg:false},
+    {k:'char',v:esc(String(st.char)), chg:prev&&prev.char!==st.char},
+    {k:'leftChar',v:esc(String(st.leftChar)), chg:prev&&prev.leftChar!==st.leftChar},
+    {k:'currentLen',v:curLen, chg:false},
+    {k:'bestLen',v:st.bestLen>S.s.length?'∞':st.bestLen, chg:prev&&prev.bestLen!==st.bestLen},
+    {k:'bestStart',v:st.bestStart, chg:prev&&prev.bestStart!==st.bestStart},
+    {k:'valid',v:valid?'true':'false', chg:prev&&((prev.have===nc)!==valid)},
+  ];
+  $('#vScalars').innerHTML=items.map(o=>`<div class="vitem${o.chg?' changed':''}"><span class="k">${o.k}</span><span class="v">${o.v}</span></div>`).join('');
+  // need map — per-step snapshot so building matches code (no ahead leak)
+  const need=(st.need!==undefined?st.need:S.trace.need);
+  const keys=Object.keys(need).sort();
+  $('#vNeed').innerHTML=keys.length?keys.map(k=>{
+    const req=need[k],w=st.window[k]||0,ok=w>=req;
+    const pct=Math.min(100,Math.round(w/req*100));
+    const chg=prev&&(prev.window[k]||0)!==w;
+    return `<div class="maprow${ok?' ok':''}${chg?' changed':''}"><span class="mc">${esc(k)}</span><span class="bar"><i style="width:${pct}%"></i></span><span class="ct">${w} / ${req}</span></div>`;
+  }).join(''):'<div class="empty">t empty</div>';
+  // window map (need chars + extras)
+  const wkeys=[...new Set([...Object.keys(st.window),...keys])].filter(k=>st.window[k]>0).sort();
+  $('#vWin').innerHTML=wkeys.length?wkeys.map(k=>{
+    const req=need[k],w=st.window[k]||0;
+    const isNeed=req!==undefined,ok=isNeed&&w>=req;
+    const pct=isNeed?Math.min(100,Math.round(w/req*100)):100;
+    const chg=prev&&(prev.window[k]||0)!==w;
+    return `<div class="maprow${ok?' ok':''}${!isNeed?' extra':''}${chg?' changed':''}"><span class="mc">${esc(k)}</span><span class="bar"><i style="width:${pct}%"></i></span><span class="ct">${isNeed?w+' / '+req:w+' · extra'}</span></div>`;
+  }).join(''):'<div class="empty">window empty</div>';
+  $('#vS').textContent=S.s||'""';
+  $('#vT').textContent=S.t||'""';
+  const cur=(st.left!==-1&&st.right!==-1&&st.right>=st.left)?S.s.slice(st.left,st.right+1):'—';
+  $('#vCur').innerHTML=cur==='—'?'—':esc(cur)+` <span style="color:var(--faint)">[${st.left}..${st.right}]</span>`;
+  const hasBest=st.bestLen<=S.s.length;
+  $('#vBest').innerHTML=hasBest?esc(S.s.slice(st.bestStart,st.bestStart+st.bestLen))+` <span style="color:var(--faint)">[${st.bestStart}..${st.bestStart+st.bestLen-1}]</span>`:'—';
+}
+
+function go(i){
+  const steps=S.trace.steps;i=Math.max(0,Math.min(i,steps.length-1));
+  const prev=steps[S.idx];
+  S.idx=i;const st=steps[i];
+  const prevForDiff = i>0?steps[i-1]:null;
+  $('#hStep').textContent=(i+1)+'/'+steps.length;
+  $('#scrub').max=steps.length-1;$('#scrub').value=i;$('#scrubInfo').textContent=(i+1)+'/'+steps.length;
+  const nc=S.trace.needCount;
+  $('#stWin').textContent=(st.left!==-1&&st.right!==-1&&st.right>=st.left)?'"'+S.s.slice(st.left,st.right+1)+'"':'—';
+  const hasBest=st.bestLen<=S.s.length;
+  $('#stBest').textContent=hasBest?'"'+S.s.slice(st.bestStart,st.bestStart+st.bestLen)+'"':'—';
+  $('#whyText').textContent=st.why;$('#whySub').textContent='#'+i+' · '+st.sub;
+  hl(st.line,st.label);
+  renderS(S.s,st.left,st.right,st.bestStart,st.bestLen);
+  renderVars(st,prevForDiff);
+  $('#eqH').textContent='have='+st.have;$('#eqN').textContent='needCount='+nc;
+  const valid=st.have===nc&&nc>0;
+  const b=$('#validBadge');b.textContent=valid?'VALID ✓':'NOT VALID';b.className='badge'+(valid?' valid':'');
+  $('#eqH').className='p'+(valid?' hot':'');
+  $('#phE').classList.toggle('on',st.phase==='expand'||st.phase==='satisfy');
+  $('#phV').classList.toggle('on',st.phase==='valid'||st.phase==='record');
+  $('#phS').classList.toggle('on',st.phase==='shrink'||st.phase==='break');
+  $('#bestRow').innerHTML=hasBest?`<span class="best-pill">${esc(S.s.slice(st.bestStart,st.bestStart+st.bestLen))}</span><span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">len ${st.bestLen} @ ${st.bestStart}</span>`:`<div class="empty">No valid window yet</div>`;
+}
+function getInt(){return Math.max(150,750/S.speed);}
+function play(){if(S.playing)return;S.playing=true;$('#bPlay').textContent='⏸';tick();}
+function pause(){S.playing=false;$('#bPlay').textContent='▶';if(S.timer)clearTimeout(S.timer);}
+function tick(){if(!S.playing)return;if(S.idx>=S.trace.steps.length-1){pause();return;}S.timer=setTimeout(()=>{go(S.idx+1);tick();},getInt());}
+function rebuild(){
+  S.s=$('#inS').value;S.t=$('#inT').value;
+  S.trace=gen(S.s,S.t);S.idx=0;pause();go(0);
+}
+$('#bApply').onclick=rebuild;
+$('#bPlay').onclick=()=>S.playing?pause():play();
+$('#bPrev').onclick=()=>{pause();go(S.idx-1);};
+$('#bNext').onclick=()=>{pause();go(S.idx+1);};
+$('#scrub').oninput=e=>{pause();go(parseInt(e.target.value,10));};
+$('#spd').oninput=e=>{S.speed=parseFloat(e.target.value);$('#spdV').textContent=S.speed.toFixed(1)+'×';};
+$('#bRand').onclick=()=>{const pool='ABCDE';let s='';const n=8+Math.floor(Math.random()*5);for(let i=0;i<n;i++)s+=pool[Math.floor(Math.random()*pool.length)];let t='';for(let i=0;i<3;i++)t+='ABC'[Math.floor(Math.random()*3)];$('#inS').value=s;$('#inT').value=t;rebuild();};
+document.querySelectorAll('.preset').forEach(p=>p.onclick=()=>{$('#inS').value=p.dataset.s;$('#inT').value=p.dataset.t;document.querySelectorAll('.preset').forEach(x=>x.classList.toggle('active',x===p));rebuild();});
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'){if(e.key==='Enter')rebuild();return;}
+  if(e.code==='Space'){e.preventDefault();S.playing?pause():play();}
+  else if(e.key==='ArrowRight'){e.preventDefault();pause();go(S.idx+1);}
+  else if(e.key==='ArrowLeft'){e.preventDefault();pause();go(S.idx-1);}
+});
+rebuild();setTimeout(play,600);
+</script>
+</body>
+</html>
